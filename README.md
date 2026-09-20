@@ -75,7 +75,6 @@ HER/
 ├── config/classification_rules.json
 ├── data/prototype.db
 ├── docs/{architecture.md,data_profile.md}
-├── presentation/
 ├── src/{ingestion.py,xlsx_reader.py,classifier.py,pipeline.py,app.py}
 ├── tests/test_prototype.py
 ├── schema.sql
