@@ -32,7 +32,7 @@ python -m unittest discover -s tests -v
 - Configurable country/account rules plus a conservative keyword fallback. Confidence below 85%, ambiguity and unmapped records enter the review queue.
 - Lowest-grain handling for JSON sub-transactions without also loading their parents.
 - Source traceability through filename, source locator, parent/source IDs, SHA-256 checksum, source metadata and preserved raw JSON.
-- Analyst dashboard with totals by currency, search/filtering, transaction detail, quality issues, original record and auditable confirm/override actions.
+- Analyst dashboard with totals by currency, search/filtering, rejected-record quarantine, transaction detail, quality issues, original record and auditable confirm/override actions.
 
 The committed `data/prototype.db` is a convenience demo build. Re-running the pipeline replaces it deterministically from the supplied source files.
 
@@ -52,8 +52,9 @@ See [architecture.md](docs/architecture.md), [data_profile.md](docs/data_profile
 2. Filter to `Unmapped` and explain why uncertainty is retained.
 3. Open a transaction to show source locator, checksum, raw JSON and rule rationale.
 4. Filter Country C and discuss child expansion / multi-currency handling.
-5. Open a flagged negative or missing-description record.
-6. Confirm or override one classification and show its audit history.
+5. Open the rejected-record quarantine and explain why those items do not enter totals.
+6. Open a flagged negative or missing-description record.
+7. Confirm or override one classification and show its audit history.
 
 ## Assumptions
 
@@ -80,4 +81,3 @@ solution/
 ├── schema.sql
 └── requirements.txt
 ```
-

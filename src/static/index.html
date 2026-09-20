@@ -14,16 +14,58 @@
 <section class="panel"><div class="table-wrap"><table><thead><tr><th>Country</th><th>Source ID</th><th>Date</th><th>Description</th><th>Amount</th><th>SHA</th><th>SRHR</th><th>Confidence</th><th>Status</th><th>Issues</th></tr></thead><tbody id="tbody"></tbody></table></div><div class="pager"><span id="pageInfo"></span><button class="secondary" id="previous">Previous</button><button id="next">Next</button></div></section>
 </main>
 <dialog id="detail"><div class="dialog-head"><strong id="detailTitle"></strong><button class="secondary" onclick="detail.close()">Close</button></div><div class="dialog-body" id="detailBody"></div></dialog>
+<dialog id="rejectedDialog"><div class="dialog-head"><strong>Rejected records</strong><button class="secondary" onclick="rejectedDialog.close()">Close</button></div><div class="dialog-body"><p class="muted">These records are preserved in quarantine but excluded from expenditure totals because they do not contain a usable amount.</p><div class="table-wrap rejected-table-wrap"><table class="rejected-table"><thead><tr><th>Country</th><th>Source ID</th><th>Source file</th><th>Source locator</th><th>Reason code</th><th>Explanation</th></tr></thead><tbody id="rejectedBody"></tbody></table></div></div></dialog>
 <script>
 const state={page:1,pageSize:25,total:0,ref:null};
 const $=id=>document.getElementById(id); const fmt=n=>new Intl.NumberFormat(undefined,{maximumFractionDigits:2}).format(n);
 function options(target,items){for(const x of items){const o=document.createElement('option');o.value=x.code||x.country_code;o.textContent=`${o.value} — ${x.description||x.country_name}`;target.append(o)}}
 async function init(){state.ref=await fetch('/api/reference').then(r=>r.json());options($('country'),state.ref.countries);options($('sha'),state.ref.sha);options($('srhr'),state.ref.srhr);await Promise.all([loadSummary(),loadRows()]);}
-async function loadSummary(){const s=await fetch('/api/summary').then(r=>r.json());const cards=[...s.totals_by_currency.map(x=>[`${x.currency} total`,fmt(x.total)]),['Review queue',s.statuses.find(x=>x.review_status==='review_required')?.records||0],['Rejected',s.rejected_records]];$('cards').innerHTML=cards.map(x=>`<div class="card"><small>${x[0]}</small><strong>${x[1]}</strong></div>`).join('');}
+async function loadSummary(){
+  const s=await fetch('/api/summary').then(r=>r.json());
+  const currencyCards=s.totals_by_currency.map(x=>`<div class="card"><small>${x.currency} total</small><strong>${fmt(x.total)}</strong></div>`).join('');
+  const reviewCount=s.statuses.find(x=>x.review_status==='review_required')?.records||0;
+  $('cards').innerHTML=`${currencyCards}<div class="card"><small>Review queue</small><strong>${reviewCount}</strong></div><div class="card rejected-card"><small>Rejected</small><strong>${s.rejected_records}</strong><button id="showRejected" class="card-action">View rejected records</button></div>`;
+  $('showRejected').onclick=showRejectedRecords;
+}
 function params(){const p=new URLSearchParams({page:state.page,page_size:state.pageSize});for(const id of ['q','country','status','sha','srhr'])if($(id).value)p.set(id,$(id).value);return p}
 async function loadRows(){const d=await fetch('/api/transactions?'+params()).then(r=>r.json());state.total=d.total;$('tbody').innerHTML=d.items.map(x=>`<tr onclick="showDetail(${x.id})"><td>${x.country_code}</td><td>${x.source_record_id}</td><td>${x.posting_date||'—'}</td><td class="desc">${escapeHtml(x.description||'—')}</td><td>${fmt(x.amount_original)} ${x.currency}</td><td><span class="badge ${x.sha_code?'':'unmapped'}">${x.sha_code||'Unmapped'}</span></td><td>${x.srhr_code||'—'}</td><td>${Math.round(x.classification_confidence*100)}%</td><td><span class="badge ${x.review_status}">${x.review_status}</span></td><td class="${x.issue_count?'issue':''}">${x.issue_count}</td></tr>`).join('');$('pageInfo').textContent=`${d.total?((d.page-1)*d.page_size+1):0}–${Math.min(d.page*d.page_size,d.total)} of ${d.total}`;$('previous').disabled=state.page===1;$('next').disabled=state.page*state.pageSize>=state.total;}
 const escapeHtml=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-async function showDetail(id){const x=await fetch('/api/transactions/'+id).then(r=>r.json());$('detailTitle').textContent=`${x.country_code} · ${x.source_record_id}`;const issues=x.quality_issues.map(i=>`<li><b>${i.issue_code}</b>: ${escapeHtml(i.message)}</li>`).join('')||'<li>None</li>';const history=x.classification_history.map(h=>`<li>${h.changed_at}: ${escapeHtml(h.analyst)} → ${h.new_sha_code||'unmapped'} / ${h.new_srhr_code||'—'} (${escapeHtml(h.note)})</li>`).join('')||'<li>No analyst decisions yet</li>';$('detailBody').innerHTML=`<div class="detail-grid">${[['Source file',x.source_path],['Source locator',x.source_locator],['Source SHA-256',x.sha256],['Parent source ID',x.parent_source_record_id||'—'],['Entity',x.entity_name],['Account',x.account_code],['Supplier',x.supplier||'—'],['Classification rationale',x.classification_rationale]].map(v=>`<div><label>${v[0]}</label><div>${escapeHtml(v[1]||'—')}</div></div>`).join('')}</div><h3>Quality issues</h3><ul>${issues}</ul><h3>Review history</h3><ul>${history}</ul><details><summary>Original source record</summary><pre>${escapeHtml(JSON.stringify(x.raw,null,2))}</pre></details><section class="review"><div><label>SHA classification</label><select id="reviewSha"><option value="">Unmapped</option>${state.ref.sha.map(v=>`<option value="${v.code}" ${v.code===x.sha_code?'selected':''}>${v.code} — ${escapeHtml(v.description)}</option>`).join('')}</select></div><div><label>SRHR classification</label><select id="reviewSrhr"><option value="">None</option>${state.ref.srhr.map(v=>`<option value="${v.code}" ${v.code===x.srhr_code?'selected':''}>${v.code} — ${escapeHtml(v.description)}</option>`).join('')}</select></div><input id="analyst" placeholder="Analyst name"><textarea id="note" placeholder="Decision note (required)"></textarea><div class="review-actions"><button onclick="saveReview(${id},'confirm')">Confirm</button><button class="secondary" onclick="saveReview(${id},'override')">Save override</button></div></section>`;$('detail').showModal();}
+async function showDetail(id){
+  const x=await fetch('/api/transactions/'+id).then(r=>r.json());
+  $('detailTitle').textContent=`${x.country_code} · ${x.source_record_id}`;
+  const issues=x.quality_issues.map(i=>`<li><b>${i.issue_code}</b>: ${escapeHtml(i.message)}</li>`).join('')||'<li>None</li>';
+  const history=x.classification_history.map(h=>`<li>${h.changed_at}: ${escapeHtml(h.analyst)} → ${h.new_sha_code||'unmapped'} / ${h.new_srhr_code||'—'} (${escapeHtml(h.note)})</li>`).join('')||'<li>No analyst decisions yet</li>';
+  const methodNames={
+    country_account_rule:'Country account rule',
+    keyword_fallback:'Keyword fallback',
+    ambiguous_keywords:'Ambiguous keyword match',
+    unmapped:'Unmapped',
+    analyst_review:'Analyst review'
+  };
+  const confidence=`${Math.round(Number(x.classification_confidence||0)*100)}%`;
+  const details=[
+    ['SHA classification',x.sha_code||'Unmapped'],
+    ['SRHR classification',x.srhr_code||'None'],
+    ['Confidence',confidence],
+    ['Classification method',methodNames[x.classification_method]||x.classification_method],
+    ['Review status',x.review_status],
+    ['Classification rationale',x.classification_rationale],
+    ['Account',x.account_code],
+    ['Entity',x.entity_name],
+    ['Supplier',x.supplier||'—'],
+    ['Source file',x.source_path],
+    ['Source locator',x.source_locator],
+    ['Source SHA-256',x.sha256],
+    ['Parent source ID',x.parent_source_record_id||'—']
+  ];
+  $('detailBody').innerHTML=`<div class="detail-grid">${details.map(v=>`<div><label>${v[0]}</label><div>${escapeHtml(v[1]||'—')}</div></div>`).join('')}</div><h3>Quality issues</h3><ul>${issues}</ul><h3>Review history</h3><ul>${history}</ul><details><summary>Original source record</summary><pre>${escapeHtml(JSON.stringify(x.raw,null,2))}</pre></details><section class="review"><div><label>SHA classification</label><select id="reviewSha"><option value="">Unmapped</option>${state.ref.sha.map(v=>`<option value="${v.code}" ${v.code===x.sha_code?'selected':''}>${v.code} — ${escapeHtml(v.description)}</option>`).join('')}</select></div><div><label>SRHR classification</label><select id="reviewSrhr"><option value="">None</option>${state.ref.srhr.map(v=>`<option value="${v.code}" ${v.code===x.srhr_code?'selected':''}>${v.code} — ${escapeHtml(v.description)}</option>`).join('')}</select></div><input id="analyst" placeholder="Analyst name"><textarea id="note" placeholder="Decision note (required)"></textarea><div class="review-actions"><button onclick="saveReview(${id},'confirm')">Confirm</button><button class="secondary" onclick="saveReview(${id},'override')">Save override</button></div></section>`;
+  $('detail').showModal();
+}
 async function saveReview(id,action){const body={sha_code:$('reviewSha').value||null,srhr_code:$('reviewSrhr').value||null,action,analyst:$('analyst').value,note:$('note').value};const r=await fetch(`/api/transactions/${id}/classification`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});if(!r.ok){alert((await r.json()).detail||'Could not save');return}$('detail').close();await Promise.all([loadRows(),loadSummary()]);}
+async function showRejectedRecords(){
+  const records=await fetch('/api/rejected?limit=500').then(r=>r.json());
+  $('rejectedBody').innerHTML=records.map(x=>`<tr><td>${escapeHtml(x.country_code)}</td><td>${escapeHtml(x.source_record_id||'—')}</td><td>${escapeHtml(x.source_path)}</td><td>${escapeHtml(x.source_locator)}</td><td><span class="badge unmapped">${escapeHtml(x.reason_code)}</span></td><td>${escapeHtml(x.reason)}</td></tr>`).join('')||'<tr><td colspan="6">No rejected records</td></tr>';
+  $('rejectedDialog').showModal();
+}
 $('apply').onclick=()=>{state.page=1;loadRows()};$('previous').onclick=()=>{state.page--;loadRows()};$('next').onclick=()=>{state.page++;loadRows()};$('q').onkeydown=e=>{if(e.key==='Enter'){$('apply').click()}};init();
 </script></body></html>
