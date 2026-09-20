@@ -1,0 +1,56 @@
+{
+  "auto_accept_threshold": 0.85,
+  "account_rules": {
+    "CTA": {
+      "2211101": {"sha": "HC.5.1", "srhr": "SRHR.NA", "confidence": 0.98, "rationale": "Medical drugs"},
+      "2211102": {"sha": "HC.5.1", "srhr": "SRHR.FP", "confidence": 0.98, "rationale": "Family-planning commodities"},
+      "2211103": {"sha": "HC.6.2", "srhr": "SRHR.NA", "confidence": 0.98, "rationale": "Vaccines"},
+      "2211105": {"sha": "HC.5.1", "srhr": "SRHR.HIV", "confidence": 0.98, "rationale": "HIV test kits and ARVs"},
+      "2211110": {"sha": "HC.5.1", "srhr": "SRHR.MH", "confidence": 0.95, "rationale": "Maternity supplies"},
+      "2211201": {"sha": "HC.4", "srhr": "SRHR.NA", "confidence": 0.95, "rationale": "Laboratory reagents"},
+      "2211305": {"sha": "HC.6.2", "srhr": "SRHR.NA", "confidence": 0.98, "rationale": "Immunisation outreach"},
+      "2211306": {"sha": "HC.6.4", "srhr": "SRHR.MH", "confidence": 0.95, "rationale": "Antenatal monitoring"},
+      "2211308": {"sha": "HC.6.1", "srhr": "SRHR.AH", "confidence": 0.95, "rationale": "Youth SRH counselling"},
+      "2211320": {"sha": "HC.6.3", "srhr": "SRHR.RC", "confidence": 0.98, "rationale": "Cervical cancer screening"},
+      "2211404": {"sha": "HC.1.3", "srhr": "SRHR.SGBV", "confidence": 0.90, "rationale": "SGBV survivor support"},
+      "2211407": {"sha": "HC.7", "srhr": "SRHR.NA", "confidence": 0.75, "rationale": "Health-facility support service; functional attribution needs review"},
+      "3110701": {"sha": "HC.4", "srhr": "SRHR.NA", "confidence": 0.80, "rationale": "Ambulances; capital/current-boundary review required"}
+    },
+    "CTB": {
+      "611010": {"sha": "HC.5.1", "srhr": "SRHR.NA", "confidence": 0.98, "rationale": "Medicaments essentiels"},
+      "611015": {"sha": "HC.5.1", "srhr": "SRHR.FP", "confidence": 0.98, "rationale": "Contraceptifs"},
+      "611020": {"sha": "HC.6.2", "srhr": "SRHR.NA", "confidence": 0.98, "rationale": "Vaccins"},
+      "611025": {"sha": "HC.5.1", "srhr": "SRHR.HIV", "confidence": 0.98, "rationale": "Tests VIH et antiretroviraux"},
+      "611030": {"sha": "HC.5.1", "srhr": "SRHR.MH", "confidence": 0.95, "rationale": "Kits obstetricaux"},
+      "611040": {"sha": "HC.4", "srhr": "SRHR.NA", "confidence": 0.95, "rationale": "Reactifs de laboratoire"},
+      "612010": {"sha": "HC.6.1", "srhr": "SRHR.MH", "confidence": 0.90, "rationale": "Sensibilisation sante maternelle"},
+      "612015": {"sha": "HC.6.1", "srhr": "SRHR.HIV", "confidence": 0.90, "rationale": "Sensibilisation VIH"},
+      "612020": {"sha": "HC.6.3", "srhr": "SRHR.RC", "confidence": 0.98, "rationale": "Depistage cancer du col"},
+      "612025": {"sha": "HC.6.1", "srhr": "SRHR.AH", "confidence": 0.95, "rationale": "Conseil SRH adolescents"},
+      "612030": {"sha": "HC.1.3", "srhr": "SRHR.SGBV", "confidence": 0.90, "rationale": "Appui victimes VBG"},
+      "613010": {"sha": "HC.7", "srhr": "SRHR.NA", "confidence": 0.75, "rationale": "Health-facility support service; review required"},
+      "614020": {"sha": "HC.4", "srhr": "SRHR.NA", "confidence": 0.80, "rationale": "Ambulances; capital/current-boundary review required"}
+    },
+    "CTC": {
+      "2211001": {"sha": "HC.5.1", "srhr": "SRHR.NA", "confidence": 0.98, "rationale": "Essential medicines"},
+      "2211005": {"sha": "HC.5.1", "srhr": "SRHR.FP", "confidence": 0.98, "rationale": "Contraceptives"},
+      "2211010": {"sha": "HC.6.2", "srhr": "SRHR.NA", "confidence": 0.98, "rationale": "Vaccines"},
+      "2211015": {"sha": "HC.5.1", "srhr": "SRHR.HIV", "confidence": 0.98, "rationale": "HIV kits and ARVs"},
+      "2211020": {"sha": "HC.5.1", "srhr": "SRHR.MH", "confidence": 0.95, "rationale": "Delivery kits"},
+      "2211050": {"sha": "HC.4", "srhr": "SRHR.NA", "confidence": 0.95, "rationale": "Laboratory reagents"},
+      "2212010": {"sha": "HC.6.1", "srhr": "SRHR.AH", "confidence": 0.95, "rationale": "Youth SRH promotion"},
+      "2212015": {"sha": "HC.6.3", "srhr": "SRHR.RC", "confidence": 0.98, "rationale": "Cervical cancer screening"},
+      "2212020": {"sha": "HC.1.3", "srhr": "SRHR.SGBV", "confidence": 0.90, "rationale": "GBV survivor support"},
+      "2212030": {"sha": "HC.6.4", "srhr": "SRHR.MH", "confidence": 0.95, "rationale": "ANC outreach"},
+      "2213010": {"sha": "HC.7", "srhr": "SRHR.NA", "confidence": 0.75, "rationale": "Health-facility support service; review required"},
+      "2213020": {"sha": "HC.4", "srhr": "SRHR.NA", "confidence": 0.70, "rationale": "Health transport but purpose is not explicit"},
+      "2214020": {"sha": "HC.4", "srhr": "SRHR.NA", "confidence": 0.80, "rationale": "Ambulances; capital/current-boundary review required"}
+    }
+  },
+  "keyword_rules": [
+    {"name": "contraception", "terms": ["contraceptive", "contraceptif", "family planning", "planification familiale"], "sha": "HC.5.1", "srhr": "SRHR.FP", "confidence": 0.70},
+    {"name": "immunisation", "terms": ["vaccine", "vaccin", "immunisation"], "sha": "HC.6.2", "srhr": "SRHR.NA", "confidence": 0.70},
+    {"name": "cervical screening", "terms": ["cervical cancer", "cancer du col"], "sha": "HC.6.3", "srhr": "SRHR.RC", "confidence": 0.70},
+    {"name": "gender-based violence", "terms": ["sgbv", "vbg", "gbv survivor"], "sha": "HC.1.3", "srhr": "SRHR.SGBV", "confidence": 0.65}
+  ]
+}
