@@ -7,11 +7,11 @@ A small, explainable prototype that ingests the three supplied country extracts,
 Prerequisites: Python 3.10+.
 
 ```bash
-cd solution
+cd HER
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-python -m src.pipeline --data-dir ../candidate_data --db data/prototype.db
+python -m src.pipeline --data-dir candidate_data --db data/prototype.db
 uvicorn src.app:app --reload
 ```
 
@@ -71,7 +71,7 @@ Before production use: PostgreSQL/object storage; immutable landing zone; schema
 ## Repository layout
 
 ```text
-solution/
+HER/
 ├── config/classification_rules.json
 ├── data/prototype.db
 ├── docs/{architecture.md,data_profile.md}
