@@ -84,4 +84,4 @@ HER/
 
 ## AI-assisted development disclosure
 
-I designed the solution and used OpenAI Codex for the implementation
+I designed the solution and leveraged OpenAI Codex to analyze the synthetic inputs and assist with the implementation
