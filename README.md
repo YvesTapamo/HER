@@ -81,3 +81,7 @@ HER/
 ├── schema.sql
 └── requirements.txt
 ```
+
+## AI-assisted development disclosure
+
+I designed the solution and used OpenAI Codex for the implementation
