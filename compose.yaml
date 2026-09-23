@@ -1,0 +1,34 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: health-expenditure-prototype:latest
+    restart: unless-stopped
+    ports:
+      - "${APP_BIND_ADDRESS:-0.0.0.0}:${APP_PORT:-8000}:8000"
+    environment:
+      HEALTH_EXPENDITURE_DB: /app/data/prototype.db
+      SOURCE_DATA_DIR: /app/candidate_data
+      REBUILD_DATABASE: "${REBUILD_DATABASE:-0}"
+      APP_USERNAME: "${APP_USERNAME:?Set APP_USERNAME in .env}"
+      APP_PASSWORD: "${APP_PASSWORD:?Set APP_PASSWORD in .env}"
+      FORWARDED_ALLOW_IPS: "${FORWARDED_ALLOW_IPS:-127.0.0.1}"
+    volumes:
+      - health_expenditure_data:/app/data
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=3).read()"]
+      interval: 20s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+
+volumes:
+  health_expenditure_data:

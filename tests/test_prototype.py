@@ -8,7 +8,7 @@ from src.pipeline import build_database
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE_DATA = ROOT.parent / "candidate_data"
+SOURCE_DATA = ROOT / "candidate_data"
 
 
 class ClassificationTests(unittest.TestCase):

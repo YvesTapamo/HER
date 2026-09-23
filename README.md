@@ -25,6 +25,50 @@ Run the tests:
 python -m unittest discover -s tests -v
 ```
 
+## Deploy on a Linux server with Docker Compose
+
+Prerequisites: Docker Engine, the Docker Compose v2 plugin, Git, and OpenSSL. The deployment uses the bundled synthetic assessment data only.
+
+```bash
+git clone https://github.com/JanvierAkowo/HER.git
+cd HER
+./scripts/deploy.sh
+```
+
+On first run the script:
+
+1. creates a local `.env` file with a random HTTP Basic Auth password;
+2. builds the application image;
+3. creates a persistent Docker volume;
+4. builds the SQLite database from `candidate_data` when the volume is empty;
+5. waits for the application health check; and
+6. prints the URL and generated login credentials.
+
+Allow the configured port (8000 by default) through the server firewall or cloud security group. Open `http://SERVER_IP:8000` and enter the generated username and password. For testing over the public internet, put the application behind an HTTPS reverse proxy; Basic Auth must not be sent over unencrypted public networks.
+
+Common server operations:
+
+```bash
+./scripts/manage.sh status
+./scripts/manage.sh logs
+./scripts/manage.sh restart
+./scripts/manage.sh update
+./scripts/manage.sh backup
+./scripts/manage.sh rebuild-data
+./scripts/manage.sh stop
+```
+
+Configuration lives in the ignored `.env` file. See [.env.example](.env.example) for port, bind address, credentials, database rebuild and trusted-proxy settings. Analyst reviews persist in the named `health_expenditure_data` volume when containers are rebuilt or restarted.
+
+To update the server:
+
+```bash
+git pull
+./scripts/manage.sh update
+```
+
+To intentionally recreate the database from the source files, run `./scripts/manage.sh rebuild-data`. The command stops the application, creates a timestamped backup inside the Docker volume, builds the replacement atomically, and starts the normal service again. This intentionally replaces analyst changes in the active database.
+
 ## What is implemented
 
 - CSV, multi-sheet XLSX and nested JSON adapters behind one harmonised record contract.
@@ -72,7 +116,12 @@ Before production use: PostgreSQL/object storage; immutable landing zone; schema
 
 ```text
 HER/
+├── Dockerfile
+├── compose.yaml
+├── docker/entrypoint.sh
+├── scripts/{deploy.sh,manage.sh}
 ├── config/classification_rules.json
+├── candidate_data/
 ├── data/prototype.db
 ├── docs/{architecture.md,data_profile.md}
 ├── src/{ingestion.py,xlsx_reader.py,classifier.py,pipeline.py,app.py}

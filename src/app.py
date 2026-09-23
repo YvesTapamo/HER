@@ -2,22 +2,54 @@
 
 from __future__ import annotations
 
+import base64
 import json
 import os
+import secrets
 import sqlite3
 from pathlib import Path
 from typing import Literal
 
-from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DB_PATH = Path(os.environ.get("HEALTH_EXPENDITURE_DB", PROJECT_ROOT / "data" / "prototype.db"))
+APP_USERNAME = os.environ.get("APP_USERNAME")
+APP_PASSWORD = os.environ.get("APP_PASSWORD")
 
-app = FastAPI(title="Health Expenditure Review", version="0.1.0")
+if bool(APP_USERNAME) != bool(APP_PASSWORD):
+    raise RuntimeError("APP_USERNAME and APP_PASSWORD must either both be set or both be omitted")
+
+app = FastAPI(title="Health Expenditure Review", version="0.2.0")
 app.mount("/static", StaticFiles(directory=PROJECT_ROOT / "src" / "static"), name="static")
+
+
+@app.middleware("http")
+async def optional_basic_auth(request: Request, call_next):
+    """Protect online test deployments while keeping local development simple."""
+    if not APP_USERNAME or request.url.path == "/api/health":
+        return await call_next(request)
+    authorization = request.headers.get("Authorization", "")
+    try:
+        scheme, encoded = authorization.split(" ", 1)
+        decoded = base64.b64decode(encoded, validate=True).decode("utf-8")
+        username, password = decoded.split(":", 1)
+    except (ValueError, UnicodeDecodeError):
+        scheme, username, password = "", "", ""
+    if (
+        scheme.lower() != "basic"
+        or not secrets.compare_digest(username, APP_USERNAME)
+        or not secrets.compare_digest(password, APP_PASSWORD)
+    ):
+        return PlainTextResponse(
+            "Authentication required",
+            status_code=401,
+            headers={"WWW-Authenticate": 'Basic realm="Health Expenditure Review"'},
+        )
+    return await call_next(request)
 
 
 def db() -> sqlite3.Connection:
@@ -31,6 +63,13 @@ def db() -> sqlite3.Connection:
 
 def rows(cursor: sqlite3.Cursor) -> list[dict]:
     return [dict(row) for row in cursor.fetchall()]
+
+
+@app.get("/api/health", include_in_schema=False)
+def health() -> dict:
+    with db() as connection:
+        connection.execute("SELECT 1").fetchone()
+    return {"status": "ok"}
 
 
 @app.get("/", include_in_schema=False)
